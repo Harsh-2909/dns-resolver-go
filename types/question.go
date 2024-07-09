@@ -3,7 +3,6 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
-	"fmt"
 	"strings"
 )
 
@@ -15,24 +14,29 @@ type Question struct {
 	QClass uint16
 }
 
+func NewQuestion(name string, qType, qClass uint16) *Question {
+	q := &Question{
+		Name:   name,
+		QType:  qType,
+		QClass: qClass,
+	}
+	q.QName = convertToQName(name)
+	return q
+}
+
 func (q *Question) SetName(name string) {
 	q.Name = name
-	// Update the QName value based on some algorithm
-	// Replace this with your own algorithm
 	q.QName = convertToQName(name)
 }
 
 func convertToQName(name string) string {
-	// Implement your algorithm to convert the name to QName
-	// Example algorithm: replace '.' with '-'
-	// return strings.ReplaceAll(name, ".", "-")
 	domain_parts := strings.Split(name, ".")
 	qname := ""
 	for _, part := range domain_parts {
-		new_domain_part := fmt.Sprintf("%d%s", len(part), part)
+		new_domain_part := string(byte(len(part))) + part
 		qname += new_domain_part
 	}
-	return qname + "0"
+	return qname + "\x00"
 }
 
 func (q *Question) ToBytes() []byte {

@@ -2,7 +2,6 @@ package types
 
 import (
 	"bytes"
-	"encoding/binary"
 )
 
 // See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1 for more information
@@ -19,7 +18,7 @@ func (m *DNSMessage) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
 	// Write the header to the buffer
-	binary.Write(buf, binary.BigEndian, m.Header)
+	buf.Write(m.Header.ToBytes())
 
 	// Write the questions to the buffer
 	for _, q := range m.Questions {

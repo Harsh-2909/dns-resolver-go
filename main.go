@@ -14,29 +14,14 @@ func main() {
 		os.Exit(1)
 	}
 	domain := os.Args[1]
-	question := types.Question{
-		QType:  1,
-		QClass: 1,
-	}
-	question.SetName(domain)
+
+	question := types.NewQuestion(domain, 1, 1)
+	generateFlag := types.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
+	header := types.NewHeader(22, generateFlag, 1, 0, 0, 0)
 	DNSMessage := types.DNSMessage{
-		Header: types.Header{
-			ID:      22,
-			QR:      false,
-			Opcode:  0,
-			AA:      false,
-			TC:      false,
-			RD:      true,
-			RA:      false,
-			Z:       0,
-			RCode:   0,
-			QDCount: 1,
-			ANCount: 0,
-			NSCount: 0,
-			ARCount: 0,
-		},
+		Header: *header,
 		Questions: []types.Question{
-			question,
+			*question,
 		},
 	}
 
@@ -44,6 +29,8 @@ func main() {
 	fmt.Printf("DNS Message: %+v\n\n", DNSMessage)
 	fmt.Printf("DNS Message in Bytes: %+v\n", DNSMessage.ToBytes())
 	fmt.Printf("DNS Message in Hex: %s\n", hex.EncodeToString(DNSMessage.ToBytes()))
+	fmt.Printf("Header in Hex: %s\n", hex.EncodeToString(header.ToBytes()))
+	fmt.Printf("Header in Hex: %s\n", hex.EncodeToString(question.ToBytes()))
 
 	// addr := &net.UDPAddr{
 	// 	IP:   net.IPv4(127, 0, 0, 1),
