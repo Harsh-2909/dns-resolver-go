@@ -20,16 +20,16 @@ func NewQuestion(name string, qType, qClass uint16) *Question {
 		QType:  qType,
 		QClass: qClass,
 	}
-	q.QName = convertToQName(name)
+	q.QName = encodeToQName(name)
 	return q
 }
 
 func (q *Question) SetName(name string) {
 	q.Name = name
-	q.QName = convertToQName(name)
+	q.QName = encodeToQName(name)
 }
 
-func convertToQName(name string) string {
+func encodeToQName(name string) string {
 	domain_parts := strings.Split(name, ".")
 	qname := ""
 	for _, part := range domain_parts {

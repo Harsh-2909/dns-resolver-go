@@ -16,8 +16,8 @@ func main() {
 	domain := os.Args[1]
 
 	question := types.NewQuestion(domain, 1, 1)
-	generateFlag := types.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
-	header := types.NewHeader(22, generateFlag, 1, 0, 0, 0)
+	recursionFlag := types.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
+	header := types.NewHeader(22, recursionFlag, 1, 0, 0, 0)
 	DNSMessage := types.DNSMessage{
 		Header: *header,
 		Questions: []types.Question{
@@ -25,12 +25,8 @@ func main() {
 		},
 	}
 
-	fmt.Printf("Domain: %s\n", domain)
-	fmt.Printf("DNS Message: %+v\n\n", DNSMessage)
 	fmt.Printf("DNS Message in Bytes: %+v\n", DNSMessage.ToBytes())
 	fmt.Printf("DNS Message in Hex: %s\n", hex.EncodeToString(DNSMessage.ToBytes()))
-	fmt.Printf("Header in Hex: %s\n", hex.EncodeToString(header.ToBytes()))
-	fmt.Printf("Header in Hex: %s\n", hex.EncodeToString(question.ToBytes()))
 
 	// addr := &net.UDPAddr{
 	// 	IP:   net.IPv4(127, 0, 0, 1),
