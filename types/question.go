@@ -3,6 +3,7 @@ package types
 import (
 	"bytes"
 	"encoding/binary"
+	"fmt"
 	"strings"
 )
 
@@ -39,6 +40,29 @@ func encodeToQName(name string) string {
 	return qname + "\x00"
 }
 
+func decodeFromQName(qname string) (string, error) {
+	encoded := []byte(qname)
+	var result bytes.Buffer
+
+	for i := 0; i < len(encoded); {
+		length := int(encoded[i])
+		if length == 0 {
+			break
+		}
+		i++
+		if i+length > len(encoded) {
+			return "", fmt.Errorf("invalid encoded domain name")
+		}
+		if result.Len() > 0 {
+			result.WriteByte('.')
+		}
+		result.Write(encoded[i : i+length])
+		i += length
+	}
+
+	return result.String(), nil
+}
+
 func (q *Question) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
@@ -47,4 +71,18 @@ func (q *Question) ToBytes() []byte {
 	binary.Write(buf, binary.BigEndian, q.QClass)
 
 	return buf.Bytes()
+}
+
+func QuestionFromBytes(b []byte) *Question {
+	length := len(b)
+	qname := string(b[:length-4])
+
+	name, _ := decodeFromQName(qname)
+
+	return &Question{
+		Name:   name,
+		QName:  qname,
+		QType:  binary.BigEndian.Uint16(b[length-4 : length-2]),
+		QClass: binary.BigEndian.Uint16(b[length-2:]),
+	}
 }

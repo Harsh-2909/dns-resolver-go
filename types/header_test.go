@@ -13,4 +13,10 @@ func TestHeader(t *testing.T) {
 		expected := []byte{0, 22, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0}
 		assert.Equal(t, expected, header.ToBytes())
 	})
+
+	t.Run("Should decode a header from bytes", func(t *testing.T) {
+		header_bytes := []byte{0, 22, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0}
+		header := NewHeader(22, GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0), 1, 0, 0, 0)
+		assert.Equal(t, header, HeaderFromBytes(header_bytes))
+	})
 }

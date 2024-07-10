@@ -58,3 +58,24 @@ func (h *Header) ToBytes() []byte {
 
 	return buf.Bytes()
 }
+
+func HeaderFromBytes(b []byte) *Header {
+	buf := bytes.NewReader(b)
+
+	var id, flags, qdCount, anCount, nsCount, arCount uint16
+	binary.Read(buf, binary.BigEndian, &id)
+	binary.Read(buf, binary.BigEndian, &flags)
+	binary.Read(buf, binary.BigEndian, &qdCount)
+	binary.Read(buf, binary.BigEndian, &anCount)
+	binary.Read(buf, binary.BigEndian, &nsCount)
+	binary.Read(buf, binary.BigEndian, &arCount)
+
+	return &Header{
+		ID:      id,
+		Flags:   flags,
+		QDCount: qdCount,
+		ANCount: anCount,
+		NSCount: nsCount,
+		ARCount: arCount,
+	}
+}
