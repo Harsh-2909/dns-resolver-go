@@ -3,7 +3,6 @@ package main
 import (
 	"dns-resolver-go/network"
 	"dns-resolver-go/types"
-	"encoding/hex"
 	"fmt"
 	"net"
 	"os"
@@ -21,15 +20,22 @@ func main() {
 	question := types.NewQuestion(domain, 1, 1)
 	recursionFlag := types.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
 	header := types.NewHeader(22, recursionFlag, 1, 0, 0, 0)
-	DNSMessage := types.DNSMessage{
-		Header: *header,
-		Questions: []types.Question{
-			*question,
-		},
-	}
+	// DNSMessage := types.DNSMessage{
+	// 	Header: *header,
+	// 	Questions: []types.Question{
+	// 		*question,
+	// 	},
+	// }
+	DNSMessage := types.NewDNSMessage(*header, []types.Question{*question})
 
+	fmt.Printf("DNS Message: %+v\n", DNSMessage)
 	fmt.Printf("DNS Message in Bytes: %+v\n", DNSMessage.ToBytes())
-	fmt.Printf("DNS Message in Hex: %s\n", hex.EncodeToString(DNSMessage.ToBytes()))
+	// fmt.Printf("DNS Message in Hex: %s\n", hex.EncodeToString(DNSMessage.ToBytes()))
+
+	// resourceRecord := types.NewResourceRecord("www.google.com", 1, 1, 0, 4, []byte{8, 8, 8, 8})
+
+	// fmt.Printf("Resource Record in Bytes: %+v\n", resourceRecord.ToBytes())
+	// fmt.Printf("Resource Record in Hex: %s\n", hex.EncodeToString(resourceRecord.ToBytes()))
 
 	dnsServer := "8.8.8.8:53"
 
@@ -63,7 +69,7 @@ func main() {
 	response := buf[:n]
 
 	fmt.Printf("Response: %v\n", response)
-	fmt.Printf("Response in Hex: %v\n", hex.EncodeToString(response))
+	// fmt.Printf("Response in Hex: %v\n", hex.EncodeToString(response))
 
 	// Check if the response ID matches the request ID
 	if !network.IDMatcher(message[:2], response[:2]) {
@@ -72,6 +78,10 @@ func main() {
 	} else {
 		fmt.Println("The response ID matches the request ID")
 	}
+
+	// Parse the response
+	parsedResponse := types.DNSMessageFromBytes(response)
+	fmt.Printf("Parsed Response: %+v\n", *parsedResponse)
 
 	// addr := &net.UDPAddr{
 	// 	IP:   net.IPv4(127, 0, 0, 1),

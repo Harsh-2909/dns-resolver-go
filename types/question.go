@@ -31,11 +31,11 @@ func (q *Question) SetName(name string) {
 }
 
 func encodeToQName(name string) string {
-	domain_parts := strings.Split(name, ".")
+	domainParts := strings.Split(name, ".")
 	qname := ""
-	for _, part := range domain_parts {
-		new_domain_part := string(byte(len(part))) + part
-		qname += new_domain_part
+	for _, part := range domainParts {
+		newDomainPart := string(byte(len(part))) + part
+		qname += newDomainPart
 	}
 	return qname + "\x00"
 }
