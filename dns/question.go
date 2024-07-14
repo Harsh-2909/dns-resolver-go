@@ -1,4 +1,4 @@
-package types
+package dns
 
 import (
 	"bytes"
@@ -7,14 +7,19 @@ import (
 	"strings"
 )
 
+// Question represents a DNS question.
+// It contains the domain name, the converted domain name based on the RFC 1035 document,
+// the question type, and the question class.
+//
 // See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.2 for more information
 type Question struct {
 	Name   string // This is a domain name
 	QName  string // This is the converted domain name based on the RFC 1035 document
-	QType  uint16
-	QClass uint16
+	QType  uint16 // The question type
+	QClass uint16 // The question class
 }
 
+// NewQuestion creates a new Question instance with the specified parameters.
 func NewQuestion(name string, qType, qClass uint16) *Question {
 	q := &Question{
 		Name:   name,
@@ -25,11 +30,13 @@ func NewQuestion(name string, qType, qClass uint16) *Question {
 	return q
 }
 
+// SetName sets the domain name of the Question and updates the converted domain name.
 func (q *Question) SetName(name string) {
 	q.Name = name
 	q.QName = encodeToQName(name)
 }
 
+// encodeToQName encodes the domain name to the format specified in RFC 1035.
 func encodeToQName(name string) string {
 	domainParts := strings.Split(name, ".")
 	qname := ""
@@ -40,6 +47,7 @@ func encodeToQName(name string) string {
 	return qname + "\x00"
 }
 
+// decodeFromQName decodes the encoded domain name to its original format.
 func decodeFromQName(qname string) (string, error) {
 	encoded := []byte(qname)
 	var result bytes.Buffer
@@ -63,6 +71,7 @@ func decodeFromQName(qname string) (string, error) {
 	return result.String(), nil
 }
 
+// ToBytes converts the Question to its byte representation.
 func (q *Question) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
@@ -73,6 +82,7 @@ func (q *Question) ToBytes() []byte {
 	return buf.Bytes()
 }
 
+// QuestionFromBytes creates a Question instance from its byte representation.
 func QuestionFromBytes(b []byte) *Question {
 	length := len(b)
 	qname := string(b[:length-4])

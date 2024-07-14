@@ -1,20 +1,23 @@
-package types
+package dns
 
 import (
 	"bytes"
 	"encoding/binary"
 )
 
+// ResourceRecord represents a DNS resource record.
+//
 // See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.3 for more information
 type ResourceRecord struct {
-	Name     string
-	Type     uint16
-	Class    uint16
-	TTL      uint32
-	RDLength uint16
-	RData    []byte
+	Name     string // The domain name of the resource record
+	Type     uint16 // The type of the resource record
+	Class    uint16 // The class of the resource record
+	TTL      uint32 // The time to live of the resource record
+	RDLength uint16 // The length of the resource data
+	RData    []byte // The resource data
 }
 
+// NewResourceRecord creates a new ResourceRecord instance.
 func NewResourceRecord(name string, rType uint16, class uint16, ttl uint32, rdLength uint16, rData []byte) *ResourceRecord {
 	return &ResourceRecord{
 		Name:     name,
@@ -26,6 +29,8 @@ func NewResourceRecord(name string, rType uint16, class uint16, ttl uint32, rdLe
 	}
 }
 
+// TrimResourceRecordBytes appends bytes from the buffer until it completely parses all the bytes of a resource record.
+// It is useful to trim the bytes of a resource record from a buffer.
 func TrimResourceRecordBytes(buf *bytes.Buffer) []byte {
 	rrBytes := appendFromBufferUntilNull(buf)
 	rrBytes = append(rrBytes, buf.Next(7)...) // appending until ttl
@@ -36,6 +41,7 @@ func TrimResourceRecordBytes(buf *bytes.Buffer) []byte {
 	return rrBytes
 }
 
+// ToBytes converts the ResourceRecord to a byte slice.
 func (rr *ResourceRecord) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
@@ -49,6 +55,7 @@ func (rr *ResourceRecord) ToBytes() []byte {
 	return buf.Bytes()
 }
 
+// ResourceRecordFromBytes creates a ResourceRecord from a byte slice.
 func ResourceRecordFromBytes(data []byte) *ResourceRecord {
 	buf := bytes.NewBuffer(data)
 

@@ -1,8 +1,8 @@
 package main
 
 import (
+	"dns-resolver-go/dns"
 	"dns-resolver-go/network"
-	"dns-resolver-go/types"
 	"fmt"
 	"net"
 	"os"
@@ -17,22 +17,22 @@ func main() {
 	}
 	domain := os.Args[1]
 
-	question := types.NewQuestion(domain, 1, 1)
-	recursionFlag := types.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
-	header := types.NewHeader(22, recursionFlag, 1, 0, 0, 0)
-	// DNSMessage := types.DNSMessage{
+	question := dns.NewQuestion(domain, 1, 1)
+	recursionFlag := dns.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
+	header := dns.NewHeader(22, recursionFlag, 1, 0, 0, 0)
+	// DNSMessage := dns.DNSMessage{
 	// 	Header: *header,
-	// 	Questions: []types.Question{
+	// 	Questions: []dns.Question{
 	// 		*question,
 	// 	},
 	// }
-	DNSMessage := types.NewDNSMessage(*header, []types.Question{*question})
+	DNSMessage := dns.NewDNSMessage(*header, []dns.Question{*question})
 
 	fmt.Printf("DNS Message: %+v\n", DNSMessage)
 	fmt.Printf("DNS Message in Bytes: %+v\n", DNSMessage.ToBytes())
 	// fmt.Printf("DNS Message in Hex: %s\n", hex.EncodeToString(DNSMessage.ToBytes()))
 
-	// resourceRecord := types.NewResourceRecord("www.google.com", 1, 1, 0, 4, []byte{8, 8, 8, 8})
+	// resourceRecord := dns.NewResourceRecord("www.google.com", 1, 1, 0, 4, []byte{8, 8, 8, 8})
 
 	// fmt.Printf("Resource Record in Bytes: %+v\n", resourceRecord.ToBytes())
 	// fmt.Printf("Resource Record in Hex: %s\n", hex.EncodeToString(resourceRecord.ToBytes()))
@@ -80,7 +80,7 @@ func main() {
 	}
 
 	// Parse the response
-	parsedResponse := types.DNSMessageFromBytes(response)
+	parsedResponse := dns.DNSMessageFromBytes(response)
 	fmt.Printf("Parsed Response: %+v\n", *parsedResponse)
 
 	// addr := &net.UDPAddr{

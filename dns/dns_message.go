@@ -1,9 +1,12 @@
-package types
+package dns
 
 import (
 	"bytes"
 )
 
+// DNSMessage represents a DNS message.
+// It contains the header, questions, answers, authority RRs, and additional RRs.
+//
 // See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1 for more information
 type DNSMessage struct {
 	Header        Header
@@ -13,6 +16,8 @@ type DNSMessage struct {
 	AdditionalRRs []ResourceRecord
 }
 
+// NewDNSMessage creates a new DNSMessage with the given header, questions, and resource records.
+// It returns a pointer to the created DNSMessage.
 func NewDNSMessage(header Header, questions []Question, records ...[]ResourceRecord) *DNSMessage {
 	answers := make([]ResourceRecord, 0)
 	authorityRRs := make([]ResourceRecord, 0)
@@ -37,6 +42,8 @@ func NewDNSMessage(header Header, questions []Question, records ...[]ResourceRec
 	}
 }
 
+// ToBytes converts the DNSMessage to a byte slice.
+// It returns the byte slice representation of the DNSMessage.
 func (m *DNSMessage) ToBytes() []byte {
 	// Create a buffer to store the bytes
 	buf := new(bytes.Buffer)
@@ -68,6 +75,8 @@ func (m *DNSMessage) ToBytes() []byte {
 	return buf.Bytes()
 }
 
+// appendFromBufferUntilNull reads bytes from the buffer until a null byte is encountered.
+// It returns the read bytes as a byte slice.
 func appendFromBufferUntilNull(buf *bytes.Buffer) []byte {
 	// Create a bytes slice by reading the bytes until we reach a null byte for any string field
 	data := make([]byte, 0)
@@ -81,6 +90,8 @@ func appendFromBufferUntilNull(buf *bytes.Buffer) []byte {
 	return data
 }
 
+// DNSMessageFromBytes creates a DNSMessage from the given byte slice.
+// It returns a pointer to the created DNSMessage.
 func DNSMessageFromBytes(data []byte) *DNSMessage {
 	// Create a new buffer from the data
 	buf := bytes.NewBuffer(data)
