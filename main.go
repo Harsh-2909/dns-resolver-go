@@ -18,7 +18,8 @@ func main() {
 	domain := os.Args[1]
 
 	question := dns.NewQuestion(domain, 1, 1)
-	recursionFlag := dns.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
+	// recursionFlag := dns.GenerateFlag(0, 0, 0, 0, 1, 0, 0, 0)
+	recursionFlag := dns.NewHeaderFlag(false, 0, false, false, true, false, 0, 0).GenerateFlag()
 	header := dns.NewHeader(22, recursionFlag, 1, 0, 0, 0)
 	// DNSMessage := dns.DNSMessage{
 	// 	Header: *header,
