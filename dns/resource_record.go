@@ -56,8 +56,12 @@ func (rr *ResourceRecord) ToBytes() []byte {
 }
 
 // ResourceRecordFromBytes creates a ResourceRecord from a byte slice.
-func ResourceRecordFromBytes(data []byte) *ResourceRecord {
+func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *ResourceRecord {
 	buf := bytes.NewBuffer(data)
+	var messageBuf *bytes.Buffer
+	if messageBufs != nil {
+		messageBuf = messageBufs[0]
+	}
 
 	name := make([]byte, 0)
 	nameLength := 0
@@ -71,6 +75,20 @@ func ResourceRecordFromBytes(data []byte) *ResourceRecord {
 		name = append(name, b)
 		nameLength += 1
 	}
+
+	// Check if the name is a pointer. Parse the pointer, get the offset and parse the name from the offset.
+	// See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.4 for more information
+	if len(name) == 2 && name[0]>>6 == 0b11 {
+		offset := int(name[1])
+		if messageBuf != nil {
+			messageBytes := messageBuf.Bytes()
+			messageBytes = messageBytes[offset:]
+			name = appendFromBufferUntilNull(bytes.NewBuffer(messageBytes))
+			n, _ := decodeFromQName(string(name))
+			name = []byte(n)
+		}
+	}
+
 	typ := binary.BigEndian.Uint16(data[nameLength : nameLength+2])
 	class := binary.BigEndian.Uint16(data[nameLength+2 : nameLength+4])
 	ttl := binary.BigEndian.Uint32(data[nameLength+4 : nameLength+8])

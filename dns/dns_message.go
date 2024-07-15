@@ -95,6 +95,7 @@ func appendFromBufferUntilNull(buf *bytes.Buffer) []byte {
 func DNSMessageFromBytes(data []byte) *DNSMessage {
 	// Create a new buffer from the data
 	buf := bytes.NewBuffer(data)
+	bufCopy := bytes.NewBuffer(data)
 
 	// Read the header from the buffer
 	header := HeaderFromBytes(buf.Next(12))
@@ -111,21 +112,21 @@ func DNSMessageFromBytes(data []byte) *DNSMessage {
 	answers := make([]ResourceRecord, header.ANCount)
 	for i := 0; i < int(header.ANCount); i++ {
 		rrBytes := TrimResourceRecordBytes(buf)
-		answers[i] = *ResourceRecordFromBytes(rrBytes)
+		answers[i] = *ResourceRecordFromBytes(rrBytes, bufCopy)
 	}
 
 	// Read the authority RRs from the buffer
 	authorityRRs := make([]ResourceRecord, header.NSCount)
 	for i := 0; i < int(header.NSCount); i++ {
 		rrBytes := TrimResourceRecordBytes(buf)
-		authorityRRs[i] = *ResourceRecordFromBytes(rrBytes)
+		authorityRRs[i] = *ResourceRecordFromBytes(rrBytes, bufCopy)
 	}
 
 	// Read the additional RRs from the buffer
 	additionalRRs := make([]ResourceRecord, header.ARCount)
 	for i := 0; i < int(header.ARCount); i++ {
 		rrBytes := TrimResourceRecordBytes(buf)
-		additionalRRs[i] = *ResourceRecordFromBytes(rrBytes)
+		additionalRRs[i] = *ResourceRecordFromBytes(rrBytes, bufCopy)
 	}
 
 	// Create a new DNS message with the parsed data
