@@ -78,13 +78,13 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 
 	// Check if the name is a pointer. Parse the pointer, get the offset and parse the name from the offset.
 	// See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.4 for more information
-	if len(name) == 2 && name[0]>>6 == 0b11 {
+	if name[0]>>6 == 0b11 {
 		offset := int(name[1])
 		if messageBuf != nil {
 			messageBytes := messageBuf.Bytes()
 			messageBytes = messageBytes[offset:]
 			name = appendFromBufferUntilNull(bytes.NewBuffer(messageBytes))
-			n, _ := decodeFromQName(string(name))
+			n, _ := DecodeName(string(name))
 			name = []byte(n)
 		}
 	}

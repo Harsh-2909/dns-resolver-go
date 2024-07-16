@@ -47,8 +47,8 @@ func encodeToQName(name string) string {
 	return qname + "\x00"
 }
 
-// decodeFromQName decodes the encoded domain name to its original format.
-func decodeFromQName(qname string) (string, error) {
+// DecodeName decodes the encoded domain name to its original format.
+func DecodeName(qname string) (string, error) {
 	encoded := []byte(qname)
 	var result bytes.Buffer
 
@@ -87,7 +87,7 @@ func QuestionFromBytes(b []byte) *Question {
 	length := len(b)
 	qname := string(b[:length-4])
 
-	name, _ := decodeFromQName(qname)
+	name, _ := DecodeName(qname)
 
 	return &Question{
 		Name:   name,

@@ -1,5 +1,11 @@
 package dns
 
+// Root DNS server
+const (
+	RootDNS     = "198.41.0.4"
+	RootDNSPort = 53
+)
+
 // DNS record types
 const (
 	TypeA     uint16 = 1   // IPv4 address record

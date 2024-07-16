@@ -31,15 +31,15 @@ func TestQuestion(t *testing.T) {
 	t.Run("Should decode from qname", func(t *testing.T) {
 		qname := "\x03www\x07example\x02co\x02in\x00"
 		expected := "www.example.co.in"
-		result, _ := decodeFromQName(qname)
+		result, _ := DecodeName(qname)
 		assert.Equal(t, expected, result)
 		qname = "\x03dns\x06google\x03com\x00"
 		expected = "dns.google.com"
-		result, _ = decodeFromQName(qname)
+		result, _ = DecodeName(qname)
 		assert.Equal(t, expected, result)
 		qname = "\x03www\x02a2\x03com\x00"
 		expected = "www.a2.com"
-		result, _ = decodeFromQName(qname)
+		result, _ = DecodeName(qname)
 		assert.Equal(t, expected, result)
 	})
 }
