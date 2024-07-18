@@ -48,13 +48,33 @@ func encodeToQName(name string) string {
 }
 
 // DecodeName decodes the encoded domain name to its original format.
-func DecodeName(qname string) (string, error) {
+func DecodeName(qname string, messageBufs ...*bytes.Buffer) (string, error) {
 	encoded := []byte(qname)
 	var result bytes.Buffer
+	var messageBuf *bytes.Buffer
+	if messageBufs != nil {
+		messageBuf = messageBufs[0]
+	}
 
 	for i := 0; i < len(encoded); {
 		length := int(encoded[i])
 		if length == 0 {
+			break
+		}
+		if encoded[i]>>6 == 0b11 && messageBuf != nil {
+			// Check if the name is a pointer. Parse the pointer, get the offset and parse the name from the offset.
+			// See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.4 for more information
+			b := encoded[i+1]
+			offset := int(b & 0b11111111)
+			messageBytes := messageBuf.Bytes()
+			messageBytes = messageBytes[offset:]
+			name := appendFromBufferUntilNull(bytes.NewBuffer(messageBytes))
+			n, _ := DecodeName(string(name))
+			name = []byte(n)
+			length = len(name)
+			result.WriteByte('.')
+			result.Write(name)
+			i += length
 			break
 		}
 		i++
