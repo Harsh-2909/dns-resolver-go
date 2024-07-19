@@ -26,18 +26,18 @@ func NewQuestion(name string, qType, qClass uint16) *Question {
 		QType:  qType,
 		QClass: qClass,
 	}
-	q.QName = encodeToQName(name)
+	q.QName = encodeName(name)
 	return q
 }
 
 // SetName sets the domain name of the Question and updates the converted domain name.
 func (q *Question) SetName(name string) {
 	q.Name = name
-	q.QName = encodeToQName(name)
+	q.QName = encodeName(name)
 }
 
-// encodeToQName encodes the domain name to the format specified in RFC 1035.
-func encodeToQName(name string) string {
+// encodeName encodes the domain name to the format specified in RFC 1035.
+func encodeName(name string) string {
 	domainParts := strings.Split(name, ".")
 	qname := ""
 	for _, part := range domainParts {
@@ -72,7 +72,9 @@ func DecodeName(qname string, messageBufs ...*bytes.Buffer) (string, error) {
 			n, _ := DecodeName(string(name))
 			name = []byte(n)
 			length = len(name)
-			result.WriteByte('.')
+			if result.Len() > 0 {
+				result.WriteByte('.')
+			}
 			result.Write(name)
 			i += length
 			break

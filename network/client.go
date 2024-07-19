@@ -73,7 +73,7 @@ func Resolve(domain string, questionType uint16) string {
 	dnsServerPort := dns.RootDNSPort
 
 	for {
-		fmt.Printf("Querying %s for %s\n\n", dnsServerIP, domain)
+		fmt.Printf("Querying %s for %s\n", dnsServerIP, domain)
 		// fmt.Printf("DNS Message:\n %+v\n\n", DNSMessage)
 		client := NewClient(dnsServerIP, dnsServerPort)
 		response, err = client.Query(DNSMessage.ToBytes())
@@ -83,8 +83,17 @@ func Resolve(domain string, questionType uint16) string {
 		}
 		parsedResponse = dns.DNSMessageFromBytes(response)
 
-		fmt.Printf("Parsed Response:\n %+v\n\n", *parsedResponse)
 		if parsedResponse.Header.ANCount > 0 {
+			fmt.Printf("\nNon-authoritative answer:\n")
+			if parsedResponse.Answers[0].Type == dns.TypeCNAME {
+				fmt.Printf("%s	canonical name = %s.\n", parsedResponse.Answers[0].Name, parsedResponse.Answers[0].RDataParsed)
+				Resolve(parsedResponse.Answers[0].RDataParsed, dns.TypeA)
+			} else {
+				for _, answer := range parsedResponse.Answers {
+					fmt.Printf("Name: %s\n", answer.Name)
+					fmt.Printf("Address: %s\n", answer.RDataParsed)
+				}
+			}
 			break
 		}
 
@@ -92,6 +101,9 @@ func Resolve(domain string, questionType uint16) string {
 			if ip := getRecord(parsedResponse.AdditionalRRs); ip != "" {
 				dnsServerIP = ip
 			}
+			// if parsedResponse.AdditionalRRs[0].RDataParsed != "" {
+			// 	dnsServerIP = parsedResponse.AdditionalRRs[0].RDataParsed
+			// }
 			continue
 		}
 
@@ -101,19 +113,17 @@ func Resolve(domain string, questionType uint16) string {
 			}
 		}
 	}
-	fmt.Printf("\n\nFinal Answer:\n %+v\n\n", parsedResponse.Answers)
-	return getRecord(parsedResponse.Answers)
+	return parsedResponse.Answers[0].RDataParsed
 }
 
 func getRecord(records []dns.ResourceRecord) string {
 	for _, record := range records {
 		if record.Type == dns.TypeA {
-			ipData := record.RData
-			return fmt.Sprintf("%d.%d.%d.%d", ipData[0], ipData[1], ipData[2], ipData[3])
+			return record.RDataParsed
+
 		} else if record.Type == dns.TypeNS {
-			domainData := record.RData
-			decodedName, _ := dns.DecodeName(string(domainData))
-			return decodedName
+			return record.RDataParsed
+
 		}
 	}
 	return ""

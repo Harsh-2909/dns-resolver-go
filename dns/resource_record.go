@@ -50,7 +50,7 @@ func TrimResourceRecordBytes(buf *bytes.Buffer) []byte {
 func (rr *ResourceRecord) ToBytes() []byte {
 	buf := new(bytes.Buffer)
 
-	buf.Write([]byte(rr.Name))
+	buf.Write([]byte(encodeName(rr.Name)))
 	binary.Write(buf, binary.BigEndian, rr.Type)
 	binary.Write(buf, binary.BigEndian, rr.Class)
 	binary.Write(buf, binary.BigEndian, rr.TTL)
@@ -68,46 +68,13 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 		messageBuf = messageBufs[0]
 	}
 
-	name := make([]byte, 0)
-	nameLength := 0
-	for {
-		b, _ := buf.ReadByte()
-		// If the byte is 0, then we have reached the end of the name and we can break the loop
-		// After name, type is present which is of 2 bytes but 1 of the byte is always 0 so we can break the loop
-		if b == 0 {
-			break
-		}
+	name := appendFromBufferUntilNull(buf)
+	nameLength := len(name) - 1
+	decodedName, err := DecodeName(string(name), messageBuf)
 
-		// if b>>6 == 0b11 && messageBuf != nil {
-		// 	// Check if the name is a pointer. Parse the pointer, get the offset and parse the name from the offset.
-		// 	// See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.4 for more information
-		// 	b, _ = buf.ReadByte()
-		// 	offset := int(b & 0b11111111)
-		// 	messageBytes := messageBuf.Bytes()
-		// 	messageBytes = messageBytes[offset:]
-		// 	name = appendFromBufferUntilNull(bytes.NewBuffer(messageBytes))
-		// 	n, _ := DecodeName(string(name))
-		// 	// name = []byte(n)
-		// 	name = append(name, []byte(n)...)
-		// 	nameLength += 2
-		// 	continue
-		// }
-
-		name = append(name, b)
-		nameLength += 1
-	}
-
-	// Check if the name is a pointer. Parse the pointer, get the offset and parse the name from the offset.
-	// See https://datatracker.ietf.org/doc/html/rfc1035#section-4.1.4 for more information
-	if name[0]>>6 == 0b11 {
-		offset := int(name[1])
-		if messageBuf != nil {
-			messageBytes := messageBuf.Bytes()
-			messageBytes = messageBytes[offset:]
-			name = appendFromBufferUntilNull(bytes.NewBuffer(messageBytes))
-			n, _ := DecodeName(string(name))
-			name = []byte(n)
-		}
+	if err != nil {
+		fmt.Printf("Failed to decode the name: %v\n", err)
+		// return nil, fmt.Errorf("failed to decode the name: %v", err)
 	}
 
 	typ := binary.BigEndian.Uint16(data[nameLength : nameLength+2])
@@ -118,7 +85,7 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 	rDataParsed, _ := parseRData(typ, rData, messageBuf)
 
 	return &ResourceRecord{
-		Name:        string(name),
+		Name:        decodedName,
 		Type:        typ,
 		Class:       class,
 		TTL:         ttl,
@@ -128,6 +95,7 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 	}
 }
 
+// parseRData parses the resource data based on the resource record type.
 func parseRData(rType uint16, rData []byte, messageBufs ...*bytes.Buffer) (string, error) {
 	switch rType {
 	case TypeA:
@@ -139,15 +107,15 @@ func parseRData(rType uint16, rData []byte, messageBufs ...*bytes.Buffer) (strin
 	case TypeMX:
 		return parseMX(rData)
 	case TypeNS:
-		return parseNS(rData)
+		return parseNS(rData, messageBufs...)
 	case TypePTR:
-		return parsePTR(rData)
+		return "", fmt.Errorf("PTR resource record is not supported")
 	case TypeSOA:
 		return parseSOA(rData)
 	case TypeSRV:
 		return parseSRV(rData)
 	case TypeTXT:
-		return parseTXT(rData)
+		return "", fmt.Errorf("TXT resource record is not supported")
 	default:
 		return "", fmt.Errorf("unknown resource record type: %d", rType)
 	}
@@ -180,7 +148,6 @@ func parseCNAME(rData []byte, messageBufs ...*bytes.Buffer) (string, error) {
 	}
 
 	name, err := DecodeName(string(rData), messageBufs...)
-
 	return name, err
 }
 
@@ -196,23 +163,13 @@ func parseMX(rData []byte) (string, error) {
 }
 
 // parseNS parses the NS resource record.
-func parseNS(rData []byte) (string, error) {
+func parseNS(rData []byte, messageBufs ...*bytes.Buffer) (string, error) {
 	if len(rData) == 0 {
 		return "", fmt.Errorf("invalid NS record length: %d", len(rData))
 	}
 
-	name := string(rData)
-	return name, nil
-}
-
-// parsePTR parses the PTR resource record.
-func parsePTR(rData []byte) (string, error) {
-	if len(rData) == 0 {
-		return "", fmt.Errorf("invalid PTR record length: %d", len(rData))
-	}
-
-	name := string(rData)
-	return name, nil
+	name, err := DecodeName(string(rData), messageBufs...)
+	return name, err
 }
 
 // parseSOA parses the SOA resource record.
@@ -237,14 +194,4 @@ func parseSRV(rData []byte) (string, error) {
 	port := binary.BigEndian.Uint16(rData[4:6])
 	name := string(rData[6:])
 	return fmt.Sprintf("%d %d %d %s", priority, weight, port, name), nil
-}
-
-// parseTXT parses the TXT resource record.
-func parseTXT(rData []byte) (string, error) {
-	if len(rData) == 0 {
-		return "", fmt.Errorf("invalid TXT record length: %d", len(rData))
-	}
-
-	txt := string(rData)
-	return txt, nil
 }

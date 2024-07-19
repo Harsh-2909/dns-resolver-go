@@ -22,10 +22,10 @@ func TestQuestion(t *testing.T) {
 	t.Run("Should encode to qname", func(t *testing.T) {
 		name := "dns.google.com"
 		expected := "\x03dns\x06google\x03com\x00"
-		assert.Equal(t, expected, encodeToQName(name))
+		assert.Equal(t, expected, encodeName(name))
 		name = "www.example.co.in"
 		expected = "\x03www\x07example\x02co\x02in\x00"
-		assert.Equal(t, expected, encodeToQName(name))
+		assert.Equal(t, expected, encodeName(name))
 	})
 
 	t.Run("Should decode from qname", func(t *testing.T) {
