@@ -19,9 +19,31 @@ func NewClient(addr string, port int) *Client {
 	}
 }
 
+func (c *Client) ipType() (string, error) {
+	ip := net.ParseIP(c.ipAddress)
+	if ip.To4() != nil {
+		return "ipv4", nil
+		// addr := fmt.Sprintf("%s:%d", c.ipAddress, c.port)
+	} else if ip.To16() != nil {
+		return "ipv6", nil
+		// addr := fmt.Sprintf("[%s]:%d", c.ipAddress, c.port)
+	}
+	return "", fmt.Errorf("invalid IP address: %s", c.ipAddress)
+}
+
 func (c *Client) Query(message []byte) ([]byte, error) {
 	// Create a UDP connection
-	addr := fmt.Sprintf("%s:%d", c.ipAddress, c.port)
+	ipType, err := c.ipType()
+	var addr string
+	if err != nil {
+		return nil, fmt.Errorf("failed to get the IP type: %v", err)
+	}
+
+	if ipType == "ipv4" {
+		addr = fmt.Sprintf("%s:%d", c.ipAddress, c.port)
+	} else if ipType == "ipv6" {
+		addr = fmt.Sprintf("[%s]:%d", c.ipAddress, c.port)
+	}
 	conn, err := net.Dial("udp", addr)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to the DNS server: %v", err)
@@ -118,12 +140,9 @@ func Resolve(domain string, questionType uint16) string {
 
 func getRecord(records []dns.ResourceRecord) string {
 	for _, record := range records {
-		if record.Type == dns.TypeA {
+		switch record.Type {
+		case dns.TypeA, dns.TypeNS, dns.TypeCNAME:
 			return record.RDataParsed
-
-		} else if record.Type == dns.TypeNS {
-			return record.RDataParsed
-
 		}
 	}
 	return ""
