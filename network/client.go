@@ -113,7 +113,7 @@ func Resolve(domain string, questionType uint16) string {
 			return ""
 		}
 		parsedResponse = dns.DNSMessageFromBytes(response)
-		fmt.Printf("parsedResponse:\n %+v\n\n", parsedResponse)
+		// fmt.Printf("parsedResponse:\n %+v\n\n", parsedResponse)
 		flags := dns.HeaderFlagFromUint16(parsedResponse.Header.Flags)
 
 		if flags.HasError() {
