@@ -4,6 +4,7 @@ import (
 	"dns-resolver-go/dns"
 	"fmt"
 	"net"
+	"os"
 	"time"
 )
 
@@ -112,6 +113,18 @@ func Resolve(domain string, questionType uint16) string {
 			return ""
 		}
 		parsedResponse = dns.DNSMessageFromBytes(response)
+		fmt.Printf("parsedResponse:\n %+v\n\n", parsedResponse)
+		flags := dns.HeaderFlagFromUint16(parsedResponse.Header.Flags)
+
+		if flags.HasError() {
+			fmt.Printf("The DNS server returned an error: %s\n", parsedResponse.Answers[0].RDataParsed)
+			os.Exit(1)
+		}
+
+		if flags.IsQuery() {
+			fmt.Printf("The returned DNS message is not a response.\n")
+			os.Exit(1)
+		}
 
 		if parsedResponse.Header.ANCount > 0 {
 			fmt.Printf("\nNon-authoritative answer:\n")
@@ -125,19 +138,18 @@ func Resolve(domain string, questionType uint16) string {
 				}
 			}
 			break
-		}
-
-		if parsedResponse.Header.ARCount > 0 {
+		} else if parsedResponse.Header.ARCount > 0 {
 			if ip := getRecord(parsedResponse.AdditionalRRs); ip != "" {
 				dnsServerIP = ip
 			}
 			continue
-		}
-
-		if parsedResponse.Header.NSCount > 0 {
+		} else if parsedResponse.Header.NSCount > 0 {
 			if nsDomain := getRecord(parsedResponse.AuthorityRRs); nsDomain != "" {
 				dnsServerIP = Resolve(nsDomain, dns.TypeA)
 			}
+		} else {
+			fmt.Printf("No answers found for %s\n", domain)
+			os.Exit(1)
 		}
 	}
 	return parsedResponse.Answers[0].RDataParsed

@@ -30,4 +30,28 @@ func TestHeaderFlag(t *testing.T) {
 		expected := NewHeaderFlag(false, 0, false, false, true, false, 0, 0)
 		assert.Equal(t, expected, HeaderFlagFromBytes(flagBytes))
 	})
+
+	t.Run("Should check if the header flag has an error", func(t *testing.T) {
+		flag := NewHeaderFlag(false, 0, false, false, true, false, 0, 0)
+		assert.False(t, flag.HasError())
+
+		flag = NewHeaderFlag(false, 0, false, false, true, false, 0, 1)
+		assert.True(t, flag.HasError())
+	})
+
+	t.Run("Should check if the header flag is a query", func(t *testing.T) {
+		flag := NewHeaderFlag(false, 0, false, false, true, false, 0, 0)
+		assert.True(t, flag.IsQuery())
+
+		flag = NewHeaderFlag(true, 0, false, false, true, false, 0, 1)
+		assert.False(t, flag.IsQuery())
+	})
+
+	t.Run("Should check if the header flag is a response", func(t *testing.T) {
+		flag := NewHeaderFlag(false, 0, false, false, true, false, 0, 0)
+		assert.False(t, flag.IsResponse())
+
+		flag = NewHeaderFlag(true, 0, false, false, true, false, 0, 1)
+		assert.True(t, flag.IsResponse())
+	})
 }

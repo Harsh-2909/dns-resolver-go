@@ -85,3 +85,21 @@ func HeaderFlagFromBytes(b []byte) *HeaderFlag {
 
 	return HeaderFlagFromUint16(flag)
 }
+
+// HasError returns whether the HeaderFlag has an error.
+// It checks the value of the RCode field.
+func (hf *HeaderFlag) HasError() bool {
+	return hf.RCode != RCodeNoError
+}
+
+// IsQuery returns whether the HeaderFlag is a query.
+// It checks the value of the QR field.
+func (hf *HeaderFlag) IsQuery() bool {
+	return !hf.QR
+}
+
+// IsResponse returns whether the HeaderFlag is a response.
+// It checks the value of the QR field.
+func (hf *HeaderFlag) IsResponse() bool {
+	return hf.QR
+}

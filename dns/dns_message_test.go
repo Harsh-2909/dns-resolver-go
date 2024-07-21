@@ -37,9 +37,4 @@ func TestDNSMessage(t *testing.T) {
 		}
 		assert.Equal(t, DNSMessage, *DNSMessageFromBytes(DNSMessageBytes))
 	})
-
-	// TODO: Write tests and code checks for the following in all the test files:
-	// - Whether the Header Flag parsed from response has proper flag to denote that it is a response
-	// - Whether the Header Flag parsed from response has proper flag to denote that it does not have an error
-	// - Whether the Resource Record checks for the type of record and parses it accordingly
 }
