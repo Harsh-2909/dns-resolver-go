@@ -7,11 +7,13 @@ import (
 	"time"
 )
 
+// Client represents a UDP client for sending DNS queries.
 type Client struct {
 	ipAddress string
 	port      int
 }
 
+// NewClient creates a new Client instance.
 func NewClient(addr string, port int) *Client {
 	return &Client{
 		ipAddress: addr,
@@ -19,6 +21,7 @@ func NewClient(addr string, port int) *Client {
 	}
 }
 
+// ipType returns the IP type of the client's IP address.
 func (c *Client) ipType() (string, error) {
 	ip := net.ParseIP(c.ipAddress)
 	if ip.To4() != nil {
@@ -31,6 +34,7 @@ func (c *Client) ipType() (string, error) {
 	return "", fmt.Errorf("invalid IP address: %s", c.ipAddress)
 }
 
+// Query sends a message to the given ip address and port and returns the response.
 func (c *Client) Query(message []byte) ([]byte, error) {
 	// Create a UDP connection
 	ipType, err := c.ipType()
@@ -76,6 +80,7 @@ func (c *Client) Query(message []byte) ([]byte, error) {
 	return response, nil
 }
 
+// IDMatcher checks if the two given IDs match.
 func IDMatcher(m1, m2 []byte) bool {
 	m1ID := m1[0:2]
 	m2ID := m2[0:2]
@@ -83,6 +88,9 @@ func IDMatcher(m1, m2 []byte) bool {
 	return m1ID[0] == m2ID[0] && m1ID[1] == m2ID[1]
 }
 
+// Resolve sends a DNS query to the DNS server and returns the 1st answer of the query in parsed format.
+// This function recursively queries the DNS server until it finds the Answer of the given type.
+// It also prints all the non-authoritative answers in stdout.
 func Resolve(domain string, questionType uint16) string {
 	question := dns.NewQuestion(domain, questionType, dns.ClassIN)
 	flag := dns.NewHeaderFlag(false, 0, false, false, false, false, 0, 0).GenerateFlag()
@@ -123,9 +131,6 @@ func Resolve(domain string, questionType uint16) string {
 			if ip := getRecord(parsedResponse.AdditionalRRs); ip != "" {
 				dnsServerIP = ip
 			}
-			// if parsedResponse.AdditionalRRs[0].RDataParsed != "" {
-			// 	dnsServerIP = parsedResponse.AdditionalRRs[0].RDataParsed
-			// }
 			continue
 		}
 
@@ -138,6 +143,10 @@ func Resolve(domain string, questionType uint16) string {
 	return parsedResponse.Answers[0].RDataParsed
 }
 
+// getRecord returns the first record of the given type from the given records.
+// It is used to get the parsed address of the whitelisted record type.
+//
+// It returns an empty string if no record of the given type is found.
 func getRecord(records []dns.ResourceRecord) string {
 	for _, record := range records {
 		switch record.Type {
