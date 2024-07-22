@@ -33,4 +33,6 @@ func TestResourceRecord(t *testing.T) {
 		expected := []byte{192, 12, 0, 1, 0, 1, 0, 0, 3, 132, 0, 4, 8, 8, 4, 4}
 		assert.Equal(t, expected, TrimResourceRecordBytes(buf))
 	})
+
+	// TODO: Add tests for parsing resource records
 }

@@ -74,7 +74,6 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 
 	if err != nil {
 		fmt.Printf("Failed to decode the name: %v\n", err)
-		// return nil, fmt.Errorf("failed to decode the name: %v", err)
 	}
 
 	typ := binary.BigEndian.Uint16(data[nameLength : nameLength+2])

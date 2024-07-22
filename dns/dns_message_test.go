@@ -1,6 +1,7 @@
 package dns
 
 import (
+	"bytes"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -36,5 +37,17 @@ func TestDNSMessage(t *testing.T) {
 			AdditionalRRs: []ResourceRecord{},
 		}
 		assert.Equal(t, DNSMessage, *DNSMessageFromBytes(DNSMessageBytes))
+	})
+
+	t.Run("Should append the bytes of a buffer until a null byte is encountered", func(t *testing.T) {
+		message := []byte{3, 100, 110, 115, 6, 103, 111, 111, 103, 108, 101, 3, 99, 111, 109, 0, 0, 1, 0, 1}
+		buf := bytes.NewBuffer(message)
+		expected := []byte{3, 100, 110, 115, 6, 103, 111, 111, 103, 108, 101, 3, 99, 111, 109, 0}
+		assert.Equal(t, expected, appendFromBufferUntilNull(buf))
+
+		message = []byte{1, 2, 3, 4, 0, 1, 2, 3, 4}
+		buf = bytes.NewBuffer(message)
+		expected = []byte{1, 2, 3, 4, 0}
+		assert.Equal(t, expected, appendFromBufferUntilNull(buf))
 	})
 }

@@ -27,10 +27,8 @@ func (c *Client) ipType() (string, error) {
 	ip := net.ParseIP(c.ipAddress)
 	if ip.To4() != nil {
 		return "ipv4", nil
-		// addr := fmt.Sprintf("%s:%d", c.ipAddress, c.port)
 	} else if ip.To16() != nil {
 		return "ipv6", nil
-		// addr := fmt.Sprintf("[%s]:%d", c.ipAddress, c.port)
 	}
 	return "", fmt.Errorf("invalid IP address: %s", c.ipAddress)
 }

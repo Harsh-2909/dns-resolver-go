@@ -1,6 +1,7 @@
 package network
 
 import (
+	"dns-resolver-go/dns"
 	"encoding/hex"
 	"testing"
 
@@ -14,5 +15,16 @@ func TestClient(t *testing.T) {
 		wrongResponse := []byte{0, 20}
 		assert.True(t, IDMatcher(queryMessage, response))
 		assert.False(t, IDMatcher(queryMessage, wrongResponse))
+	})
+
+	t.Run("Should resolve the domain to an IP", func(t *testing.T) {
+		expectedIPs := []string{"8.8.8.8", "8.8.4.4"}
+		ip := Resolve("dns.google.com", dns.TypeA)
+		assert.Contains(t, expectedIPs, ip)
+	})
+
+	t.Run("Should resolve to a valid IPv4 address", func(t *testing.T) {
+		ip := Resolve("dns.google.com", dns.TypeA)
+		assert.Regexp(t, `\b(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\b`, ip)
 	})
 }
