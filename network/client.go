@@ -1,6 +1,7 @@
 package network
 
 import (
+	"dns-resolver-go/cache"
 	"dns-resolver-go/dns"
 	"fmt"
 	"net"
@@ -87,17 +88,58 @@ func IDMatcher(m1, m2 []byte) bool {
 	return m1ID[0] == m2ID[0] && m1ID[1] == m2ID[1]
 }
 
+// Option represents the options for the Resolve function.
+type Option struct {
+	UseCache bool // Whether to use the cache or not.
+}
+
+// DefaultOption returns the default options for the Resolve function.
+func DefaultOption() Option {
+	return Option{
+		UseCache: true,
+	}
+}
+
 // Resolve sends a DNS query to the DNS server and returns the 1st answer of the query in parsed format.
 // This function recursively queries the DNS server until it finds the Answer of the given type.
 // It also prints all the non-authoritative answers in stdout.
-func Resolve(domain string, questionType uint16) string {
+func Resolve(domain string, questionType uint16, options ...Option) string {
+	var option Option
+	if len(options) > 0 {
+		option = options[0]
+	} else {
+		option = DefaultOption()
+	}
+
+	cacheClient, err := cache.NewClient()
+	if err != nil {
+		fmt.Printf("Failed to create the cache client: %v\n", err)
+		os.Exit(1)
+	}
+	defer cacheClient.Close()
+
+	// Using cache
+	if option.UseCache {
+		results, err := cacheClient.Get(domain)
+		if err != nil {
+			fmt.Printf("Failed to get the cached results: %v\n", err)
+			os.Exit(1)
+		}
+		if len(results) > 0 {
+			fmt.Printf("Cache hit for %s\n", domain)
+			for _, result := range results {
+				fmt.Printf("Name: %s\n", result.Name)
+				fmt.Printf("Address: %s\n", result.RDataParsed)
+			}
+			return results[0].RDataParsed
+		}
+	}
+
 	question := dns.NewQuestion(domain, questionType, dns.ClassIN)
 	flag := dns.NewHeaderFlag(false, 0, false, false, false, false, 0, 0).GenerateFlag()
 	header := dns.NewHeader(22, flag, 1, 0, 0, 0)
 	DNSMessage := dns.NewDNSMessage(*header, []dns.Question{*question})
-	var response []byte
 	var parsedResponse *dns.DNSMessage
-	var err error
 	dnsServerIP := dns.RootDNS
 	dnsServerPort := dns.RootDNSPort
 
@@ -105,7 +147,7 @@ func Resolve(domain string, questionType uint16) string {
 		fmt.Printf("Querying %s for %s\n", dnsServerIP, domain)
 		// fmt.Printf("DNS Message:\n %+v\n\n", DNSMessage)
 		client := NewClient(dnsServerIP, dnsServerPort)
-		response, err = client.Query(DNSMessage.ToBytes())
+		response, err := client.Query(DNSMessage.ToBytes())
 		if err != nil {
 			fmt.Printf("Failed to query the DNS server: %v\n", err)
 			return ""
@@ -133,6 +175,7 @@ func Resolve(domain string, questionType uint16) string {
 				for _, answer := range parsedResponse.Answers {
 					fmt.Printf("Name: %s\n", answer.Name)
 					fmt.Printf("Address: %s\n", answer.RDataParsed)
+					cacheClient.Insert(domain, dns.TypeA, answer.RDataParsed, int(answer.TTL))
 				}
 			}
 			break

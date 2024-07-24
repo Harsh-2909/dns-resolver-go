@@ -27,6 +27,22 @@ func TestCacheClient(t *testing.T) {
 		assert.Nil(t, err)
 	})
 
+	t.Run("Should Insert Record while deleting duplicate record", func(t *testing.T) {
+		client, err := NewClient(TEST_CACHE_PATH)
+		assert.Nil(t, err)
+		assert.NotNil(t, client)
+		defer client.Close()
+
+		err = client.Insert("example.com", dns.TypeA, "127.0.0.1", 300)
+		assert.Nil(t, err)
+		err = client.Insert("example.com", dns.TypeA, "127.0.0.1", 300)
+		assert.Nil(t, err)
+
+		records, err := client.Get("example.com")
+		assert.Nil(t, err)
+		assert.Equal(t, 1, len(records))
+	})
+
 	t.Run("Should Get Record", func(t *testing.T) {
 		client, err := NewClient(TEST_CACHE_PATH)
 		assert.Nil(t, err)
