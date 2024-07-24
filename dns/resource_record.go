@@ -94,6 +94,58 @@ func ResourceRecordFromBytes(data []byte, messageBufs ...*bytes.Buffer) *Resourc
 	}
 }
 
+// RTypeToString returns the string representation of the given DNS record type.
+func RTypeToString(rType uint16) string {
+	switch rType {
+	case TypeA:
+		return "A"
+	case TypeAAAA:
+		return "AAAA"
+	case TypeCNAME:
+		return "CNAME"
+	case TypeMX:
+		return "MX"
+	case TypeNS:
+		return "NS"
+	case TypePTR:
+		return "PTR"
+	case TypeSOA:
+		return "SOA"
+	case TypeSRV:
+		return "SRV"
+	case TypeTXT:
+		return "TXT"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+// RTypeToInt returns the integer representation of the given DNS record type.
+func RTypeToInt(rType string) uint16 {
+	switch rType {
+	case "A":
+		return TypeA
+	case "AAAA":
+		return TypeAAAA
+	case "CNAME":
+		return TypeCNAME
+	case "MX":
+		return TypeMX
+	case "NS":
+		return TypeNS
+	case "PTR":
+		return TypePTR
+	case "SOA":
+		return TypeSOA
+	case "SRV":
+		return TypeSRV
+	case "TXT":
+		return TypeTXT
+	default:
+		return 0
+	}
+}
+
 // parseRData parses the resource data based on the resource record type.
 func parseRData(rType uint16, rData []byte, messageBufs ...*bytes.Buffer) (string, error) {
 	switch rType {
