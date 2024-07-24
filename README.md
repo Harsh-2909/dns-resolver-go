@@ -1,5 +1,12 @@
 # DNS Resolver
 
+![GitHub](https://img.shields.io/github/license/Harsh-2909/dns-resolver-go)
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/Harsh-2909/dns-resolver-go)
+[![Go Report Card](https://goreportcard.com/badge/github.com/Harsh-2909/dns-resolver-go)](https://goreportcard.com/report/github.com/Harsh-2909/dns-resolver-go)
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/Harsh-2909/dns-resolver-go/go.yml?branch=main)
+
+![DNS Resolver](assets/dns-resolver.png)
+
 DNS Resolver is a lightweight DNS resolver implemented in Go, designed for simplicity and efficiency.
 
 ## Features
@@ -7,6 +14,7 @@ DNS Resolver is a lightweight DNS resolver implemented in Go, designed for simpl
 -   **DNS Query Resolution:** Resolves DNS queries using UDP.
 -   **IPv4 Support:** Capable of resolving IPv4 addresses.
 -   **Timeout Handling:** Includes timeout handling for queries to prevent blocking.
+-   **Caching:** Implements a caching mechanism to improve query response times.
 
 ## Getting Started
 
@@ -37,6 +45,12 @@ To run the DNS resolver, use the following command:
 ./dns-resolver <domain>
 ```
 
+If you want to disable caching, use the `--no-cache` flag:
+
+```bash
+./dns-resolver <domain> --no-cache
+```
+
 ### Testing
 
 Unit tests are included to verify the functionality of the resolver. Run the tests with:
@@ -49,7 +63,6 @@ go test ./...
 
 -   **IPv6 Support:** Add support for IPv6 addresses.
 -   **DNS Query Resolution:** Add support for resolving DNS queries using TCP or HTTPS.
--   **Caching:** Implement a robust caching mechanism to improve query response times. Currently, the resolver does not cache any responses.
 
 ## Usage
 
